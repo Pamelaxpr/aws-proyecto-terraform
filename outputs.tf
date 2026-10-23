@@ -12,10 +12,4 @@ output "ecr_repositories_urls" {
   value = {
     for name, repo in aws_ecr_repository.microservices : name => repo.repository_url
   }
-
-output "alb_dns_name" {
-  description = "URL publica del Balanceador de Carga"
-  value       = aws_lb.main.dns_name
-} 
-
 }

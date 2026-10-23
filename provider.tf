@@ -8,9 +8,9 @@ provider "aws" {
   skip_metadata_api_check     = true
 
   endpoints {
-    ec2 = "http://192.168.165.135:4566"
-    ecr = "http://192.168.165.135:4566"
-    ecs = "http://192.168.165.135:4566"
+    ec2   = "http://192.168.165.135:4566"
+    ecr   = "http://192.168.165.135:4566"
+    ecs   = "http://192.168.165.135:4566"
     elbv2 = "http://192.168.165.135:4566"
   }
 

@@ -14,15 +14,19 @@ resource "aws_subnet" "public" {
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
   map_public_ip_on_launch = true
 
+  #availability zone para el lb:
+  availability_zone = count.index == 0 ? "us-east-1a" : "us-east-1b"
+
   tags = {
     Name = "${var.project_name}-public-subnet-${count.index + 1}"
   }
 }
 
 resource "aws_subnet" "private" {
-  count      = 2
-  vpc_id     = aws_vpc.main.id
-  cidr_block = cidrsubnet(var.vpc_cidr, 8, count.index + 2)
+  count             = 2
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 2)
+  availability_zone = count.index == 0 ? "us-east-1a" : "us-east-1b"
 
   tags = {
     Name = "${var.project_name}-private-subnet-${count.index + 1}"

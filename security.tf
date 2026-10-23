@@ -1,55 +1,60 @@
-# security.tf - Grupos de Seguridad (Firewalls)
+variable "container_port" {
+  description = "Puerto TCP en el que escucha la aplicacion dentro de la tarea ECS"
+  type        = number
+}
 
-# 1. Firewall para el Balanceador de Carga (Público)
 resource "aws_security_group" "alb_sg" {
   name        = "${var.project_name}-alb-sg"
-  description = "Permitir trafico web desde internet hacia el balanceador"
+  description = "Permitir HTTP publico y conectar solo al puerto de la aplicacion"
   vpc_id      = aws_vpc.main.id
-
-  # Regla de entrada: Permitir tráfico HTTP (puerto 80) desde cualquier IP
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Regla de salida: Permitir que el balanceador envíe datos hacia adentro
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   tags = {
     Name = "${var.project_name}-alb-sg"
   }
 }
 
-# 2. Firewall para los contenedores Fargate (Privado)
 resource "aws_security_group" "ecs_tasks_sg" {
   name        = "${var.project_name}-ecs-tasks-sg"
-  description = "Permitir trafico solo desde el balanceador de carga"
+  description = "Permitir trafico de aplicacion solo desde el ALB"
   vpc_id      = aws_vpc.main.id
-
-  # Regla de entrada: Aislar los contenedores. Solo entra tráfico del ALB_SG.
-  ingress {
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
-    security_groups = [aws_security_group.alb_sg.id]
-  }
-
-  # Regla de salida: Permitir salir a internet (necesario para descargar imagenes desde ECR)
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 
   tags = {
     Name = "${var.project_name}-ecs-tasks-sg"
   }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alb_http" {
+  security_group_id = aws_security_group.alb_sg.id
+  description       = "HTTP publico hacia el ALB"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 80
+  to_port           = 80
+  ip_protocol       = "tcp"
+}
+
+resource "aws_vpc_security_group_egress_rule" "alb_to_tasks" {
+  security_group_id            = aws_security_group.alb_sg.id
+  description                  = "El ALB solo puede conectar al puerto de la aplicacion"
+  referenced_security_group_id = aws_security_group.ecs_tasks_sg.id
+  from_port                    = var.container_port
+  to_port                      = var.container_port
+  ip_protocol                  = "tcp"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "tasks_from_alb" {
+  security_group_id            = aws_security_group.ecs_tasks_sg.id
+  description                  = "La aplicacion solo recibe trafico en su puerto desde el ALB"
+  referenced_security_group_id = aws_security_group.alb_sg.id
+  from_port                    = var.container_port
+  to_port                      = var.container_port
+  ip_protocol                  = "tcp"
+}
+
+resource "aws_vpc_security_group_egress_rule" "tasks_https" {
+  security_group_id = aws_security_group.ecs_tasks_sg.id
+  description       = "HTTPS saliente para dependencias como ECR"
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 443
+  to_port           = 443
+  ip_protocol       = "tcp"
 }

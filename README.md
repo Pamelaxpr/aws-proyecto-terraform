@@ -21,11 +21,11 @@ La arquitectura objetivo se divide en varias fases. Aquí marcamos nuestro progr
   - Archivo: `ecs.tf`
   - Qué hace: Crea el clúster base que administrará los contenedores utilizando el proveedor de capacidad Fargate (Serverless).
 
-- [ ] **Fase 4: Seguridad y Reglas de Tráfico**
+- [x] **Fase 4: Seguridad y Reglas de Tráfico**
   - Archivo: `security.tf`
   - Qué hará: Crear Grupos de Seguridad (Firewalls) para garantizar que los contenedores en las redes privadas solo reciban tráfico autorizado.
 
-- [ ] **Fase 5: Balanceador de Carga (ALB)**
+- [x] **Fase 5: Balanceador de Carga (ALB)**
   - Archivo: `alb.tf`
   - Qué hará: Distribuir el tráfico de internet hacia los contenedores de la API y los WebSockets persistentes de los GPS.
 

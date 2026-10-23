@@ -1,6 +1,7 @@
 variable "container_port" {
   description = "Puerto TCP en el que escucha la aplicacion dentro de la tarea ECS"
   type        = number
+  default     = 8000
 }
 
 resource "aws_security_group" "alb_sg" {
